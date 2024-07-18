@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bytes"
+	//"bytes"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"golang.org/x/crypto/ssh"
@@ -36,28 +37,23 @@ func main() {
 			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: hostKeyCallback,
-		// HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	client, err := ssh.Dial("tcp", "192.168.1.10:22", config) // Mike's Plex server
+	conn, err := ssh.Dial("tcp", "192.168.1.10:22", config) // Mike's Plex server
 	if err != nil {
 		log.Fatal("Failed to dial: ", err)
 	}
-	defer client.Close()
+	defer conn.Close()
 
-	// Each ClientConn can support multiple interactive sessions,
-	// represented by a Session.
-	session, err := client.NewSession()
+	// Request the remote side to open port 8080 on all interfaces.
+	l, err := conn.Listen("tcp", "0.0.0.0:8080")
 	if err != nil {
-		log.Fatal("Failed to create session: ", err)
+		log.Fatal("unable to register tcp forward: ", err)
 	}
-	defer session.Close()
+	defer l.Close()
 
-	// Once a Session is created, you can execute a single command on
-	// the remote side using the Run method.
-	var b bytes.Buffer
-	session.Stdout = &b
-	if err := session.Run("/usr/bin/hostname"); err != nil {
-		log.Fatal("Failed to run: " + err.Error())
-	}
-	fmt.Printf("Remotely connected to: %s", b.String())
+	// Serve HTTP with your SSH server acting as a reverse proxy.
+	http.Serve(l, http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(resp, "Hello world!\n")
+	}))
+
 }
