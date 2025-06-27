@@ -1,11 +1,11 @@
 {
     "agent_id":"mmillsap",
-    "server_ip":"192.168.1.10",
-    "server_port":8080,
+    "server_ip":"127.0.0.1",
+    "server_port":8100,
     "bastion_ip": "192.168.1.10",
     "bastion_port": 22,
-    "key_path":"./config",
-    "known_hosts_path": "known_hosts",
+    "key_path":"./keys",
+    "known_hosts_path": "./config/known_hosts",
     "key_size": 4096,
     "jwt_exp_minutes": 5,
     "heartbeat": 30

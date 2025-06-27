@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -42,28 +43,29 @@ func createTunnel(localPort, remotePort int) {
 	for {
 		remote, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("createTunnel(): can't create tunnel listener: %v\n", err)
 		}
 		go func() {
+			var wg sync.WaitGroup
+			wg.Add(2)
 			local, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", localPort))
 			if err != nil {
 				log.Fatal(err)
 			}
 			defer local.Close()
 			defer remote.Close()
-			done := make(chan struct{}, 2)
 
 			go func() {
 				io.Copy(local, remote)
-				done <- struct{}{}
+				wg.Done()
 			}()
 
 			go func() {
 				io.Copy(remote, local)
-				done <- struct{}{}
+				wg.Done()
 			}()
 
-			<-done
+			wg.Wait()
 		}()
 	}
 }

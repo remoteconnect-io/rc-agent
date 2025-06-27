@@ -16,6 +16,9 @@ type Config struct {
 	BastionPort    int    `json:"bastion_port"`
 	SSHPrivKey     ssh.Signer
 	KnownHostsPath string `json:"known_hosts_path"`
+	KeyPath        string `json:"key_path"`
+	KeySize        int    `json:"key_size"`
+	JwtExpMinutes  int    `json:"jwt_exp_minutes"`
 	Heartbeat      int    `josn:"heartbeat"`
 }
 
