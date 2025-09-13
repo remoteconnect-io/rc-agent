@@ -35,7 +35,7 @@ func heartbeat(conn *websocket.Conn, agent string) {
 		if err != nil {
 			log.Println("heartbeat(): ", err)
 		}
-		time.Sleep(time.Duration(c.Heartbeat) * time.Second)
+		time.Sleep(time.Duration(cfg.Heartbeat) * time.Second)
 	}
 }
 
@@ -58,8 +58,8 @@ func dispatcher(conn *websocket.Conn, rpcBuffer <-chan rpc) {
 		// Retrieve RPC from incoming RPC buffer. Call handlers from here.
 		r = <-rpcBuffer
 		switch r.Method {
-		case "activate_amt": // Fake
-			log.Println("dispatcher(): activate_amt received")
+		case "rotate_keys": // Fake
+			log.Println("dispatcher(): rotate_keys received")
 			msg := rpc{1, r.JobID, time.Now().Unix(), "FAILED", nil}
 			rpcRes(conn, msg)
 		case "create_tunnel":
@@ -69,7 +69,7 @@ func dispatcher(conn *websocket.Conn, rpcBuffer <-chan rpc) {
 				log.Println("dispatcher(): create_tunnel unmarshalling:", err)
 			}
 			fmt.Printf("Create tunnel, remote_port: %d, local_port: %d\n", sshPort.Remote, sshPort.Local)
-			go createTunnel(sshPort.Local, sshPort.Remote)
+			//go createTunnel(sshPort.Local, sshPort.Remote)
 		default:
 			log.Println("dispatcher(): undefined RPC method: ", r.Method)
 		}

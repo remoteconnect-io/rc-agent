@@ -10,17 +10,25 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var c Config
+var cfg *Config
 
 func init() {
-	err := getConfig(&c, "./config/config.json")
+	var err error
+	cfg, err = LoadConfig("config.json")
 	if err != nil {
-		log.Fatalf("error getting configuration settings: %v", err)
+		log.Fatalf("failed to load config: %v", err)
 	}
 }
 
 func main() {
-	authTkn, err := getSignedToken(c.AgentID)
+	// TODO: remove this test code
+	fmt.Printf("Config: %s\n", cfg.AgentID)
+	if true {
+		log.Fatalln(cfg)
+	}
+	// End TODO
+
+	authTkn, err := getSignedToken(cfg.AgentID)
 	if err != nil {
 		log.Fatalln("main(): getting authorization token: ", err)
 	}
@@ -29,7 +37,7 @@ func main() {
 	wsHeader.Set("Authorization", authTkn)
 	u := url.URL{
 		Scheme: "ws",
-		Host:   fmt.Sprintf("%s:%d", c.ServerIP, c.ServerPort),
+		Host:   fmt.Sprintf("%s:%d", cfg.ServerIP, cfg.ServerPort),
 		Path:   "/agent/v1/ws"}
 
 	// Connect to server
@@ -40,7 +48,7 @@ func main() {
 	defer conn.Close()
 
 	// Launch heartbeat routine
-	go heartbeat(conn, c.AgentID)
+	go heartbeat(conn, cfg.AgentID)
 
 	// Launch dispatcher
 	rpcBuffer := make(chan rpc)

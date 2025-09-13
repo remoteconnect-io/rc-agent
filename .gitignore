@@ -1,5 +1,4 @@
 
-rc-agent.exe
-rc-agent
-config/
-keys/
+prov-agent
+config.json
+*.pem
