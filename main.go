@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -23,9 +24,9 @@ func init() {
 func main() {
 	// TODO: remove this test code
 	fmt.Printf("Config: %s\n", cfg.AgentID)
-	if true {
-		log.Fatalln(cfg)
-	}
+	// if true {
+	// 	log.Fatalln(cfg)
+	// }
 	// End TODO
 
 	authTkn, err := getSignedToken(cfg.AgentID)
@@ -40,11 +41,18 @@ func main() {
 		Host:   fmt.Sprintf("%s:%d", cfg.ServerIP, cfg.ServerPort),
 		Path:   "/agent/v1/ws"}
 
-	// Connect to server
-	conn, _, err := websocket.DefaultDialer.Dial(u.String(), wsHeader)
-	if err != nil {
-		log.Fatal("main(): websocket connection:", err)
+	// TODO: loop web socket connection attempt
+	// Keep attempting to connect
+	var conn *websocket.Conn
+	for {
+		conn, _, err = websocket.DefaultDialer.Dial(u.String(), wsHeader)
+		if err == nil {
+			break
+		}
+		log.Printf("main(): websocket connection: %v\n", err)
+		time.Sleep(time.Duration(cfg.connTimeoutSec) * time.Second)
 	}
+	// END LOOP
 	defer conn.Close()
 
 	// Launch heartbeat routine

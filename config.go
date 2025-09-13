@@ -16,15 +16,16 @@ import (
 )
 
 type Config struct {
-	AgentID       string
-	ServerIP      string `mapstructure:"server_ip"`
-	ServerPort    int    `mapstructure:"server_port"`
-	JwtExpMinutes int    `mapstructure:"jwt_exp_minutes"`
-	Heartbeat     int    `mapstructure:"heartbeat"`
-	KeyBits       int    `mapstructure:"key_bits"`
-	KeyPath       string `mapstructure:"key_path"`
-	Private       []byte
-	Public        []byte
+	AgentID        string
+	ServerIP       string `mapstructure:"server_ip"`
+	ServerPort     int    `mapstructure:"server_port"`
+	JwtExpMinutes  int    `mapstructure:"jwt_exp_minutes"`
+	connTimeoutSec int64  `mapstructure:"conn_timeout_seconds"`
+	Heartbeat      int    `mapstructure:"heartbeat"`
+	KeyBits        int    `mapstructure:"key_bits"`
+	KeyPath        string `mapstructure:"key_path"`
+	Private        []byte
+	Public         []byte
 }
 
 const (
@@ -43,6 +44,7 @@ func LoadConfig(configFile string) (*Config, error) {
 	v.SetDefault("key_path", "keys")
 	v.SetDefault("key_bits", 2048)
 	v.SetDefault("jwt_exp_minutes", 5)
+	v.SetDefault("conn_timeout_seconds", 10)
 	v.SetDefault("heartbeat", 5)
 
 	// Read config from file if provided
