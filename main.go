@@ -25,7 +25,7 @@ func main() {
 	// TODO: remove this test code
 	log.Println(cfg)
 
-	authTkn, err := getSignedToken(cfg.AgentID)
+	authTkn, err := getSignedJWT()
 	if err != nil {
 		log.Fatalln("main(): getting authorization token: ", err)
 	}
@@ -36,6 +36,9 @@ func main() {
 		Scheme: "ws",
 		Host:   fmt.Sprintf("%s:%d", cfg.ServerIP, cfg.ServerPort),
 		Path:   "/agent/v1/ws"}
+
+	// TODO: remove this test code
+	log.Println(authTkn)
 
 	// Loop until connected
 	var conn *websocket.Conn
@@ -52,15 +55,16 @@ func main() {
 	// Launch heartbeat routine
 	go heartbeat(conn, cfg.AgentID)
 
-	// Launch dispatcher
+	// Launch dispatcher routine
 	rpcBuffer := make(chan rpc)
 	go dispatcher(conn, rpcBuffer)
 
-	// Continuously check for incoming messages
 	var (
 		msgRPC  rpc
 		message []byte
 	)
+
+	// Continuously check for incoming messages
 	for {
 		_, message, err = conn.ReadMessage()
 		if err != nil {
@@ -73,7 +77,7 @@ func main() {
 			break
 		}
 
-		// Send RPC to dispatcher
+		// Send RPC to dispatcher channel
 		rpcBuffer <- msgRPC
 	}
 }
