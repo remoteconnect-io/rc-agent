@@ -20,7 +20,7 @@ type Config struct {
 	ServerIP       string `mapstructure:"server_ip"`
 	ServerPort     int    `mapstructure:"server_port"`
 	JwtExpMinutes  int    `mapstructure:"jwt_exp_minutes"`
-	connTimeoutSec int64  `mapstructure:"conn_timeout_seconds"`
+	ConnTimeoutSec int    `mapstructure:"conn_timeout_seconds"`
 	Heartbeat      int    `mapstructure:"heartbeat"`
 	KeyBits        int    `mapstructure:"key_bits"`
 	KeyPath        string `mapstructure:"key_path"`

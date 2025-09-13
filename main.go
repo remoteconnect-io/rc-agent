@@ -23,11 +23,7 @@ func init() {
 
 func main() {
 	// TODO: remove this test code
-	fmt.Printf("Config: %s\n", cfg.AgentID)
-	// if true {
-	// 	log.Fatalln(cfg)
-	// }
-	// End TODO
+	log.Println(cfg)
 
 	authTkn, err := getSignedToken(cfg.AgentID)
 	if err != nil {
@@ -41,8 +37,7 @@ func main() {
 		Host:   fmt.Sprintf("%s:%d", cfg.ServerIP, cfg.ServerPort),
 		Path:   "/agent/v1/ws"}
 
-	// TODO: loop web socket connection attempt
-	// Keep attempting to connect
+	// Loop until connected
 	var conn *websocket.Conn
 	for {
 		conn, _, err = websocket.DefaultDialer.Dial(u.String(), wsHeader)
@@ -50,9 +45,8 @@ func main() {
 			break
 		}
 		log.Printf("main(): websocket connection: %v\n", err)
-		time.Sleep(time.Duration(cfg.connTimeoutSec) * time.Second)
+		time.Sleep(time.Duration(cfg.ConnTimeoutSec) * time.Second)
 	}
-	// END LOOP
 	defer conn.Close()
 
 	// Launch heartbeat routine
