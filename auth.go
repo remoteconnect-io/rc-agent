@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,4 +27,23 @@ func getSignedJWT() (token string, err error) {
 	}
 
 	return token, nil
+}
+
+// GenerateToken returns a random 6-character alphanumeric string.
+func generateToken() (string, error) {
+	const tokenCharset = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
+
+	length := 6
+	token := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		// pick a random index in charset
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(tokenCharset))))
+		if err != nil {
+			return "", fmt.Errorf("GenerateToken(): failed to generate random number: %w\n", err)
+		}
+		token[i] = tokenCharset[num.Int64()]
+	}
+
+	return string(token), nil
 }
