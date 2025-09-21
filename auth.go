@@ -11,16 +11,18 @@ import (
 )
 
 // getSignedJWT() returns a signed JWT
-func getSignedJWT() (token string, err error) {
+func getSignedJWT(otp string) (token string, err error) {
 	privKey, err := jwt.ParseRSAPrivateKeyFromPEM(cfg.Private)
 	if err != nil {
 		return "", fmt.Errorf("createToken(): parse %w", err)
 	}
 	token, err = jwt.NewWithClaims(jwt.SigningMethodRS256,
 		jwt.MapClaims{
-			"agentID": cfg.AgentID,
-			"exp":     time.Now().Add(time.Second * time.Duration(cfg.JwtExpMinutes)).Unix(),
-			"iss":     base64.StdEncoding.EncodeToString(cfg.Public),
+			"sub": cfg.AgentID,
+			"per": cfg.Personality,
+			"otp": otp,
+			"exp": time.Now().Add(time.Second * time.Duration(cfg.JwtExpMinutes)).Unix(),
+			"iss": base64.StdEncoding.EncodeToString(cfg.Public),
 		}).SignedString(privKey)
 	if err != nil {
 		return "", fmt.Errorf("getSignedJWT(): error signing jwt %w", err)
@@ -29,8 +31,8 @@ func getSignedJWT() (token string, err error) {
 	return token, nil
 }
 
-// GenerateToken returns a random 6-character alphanumeric string.
-func generateToken() (string, error) {
+// GenerateOTP() returns a random 6-character alphanumeric string.
+func generateOTP() (string, error) {
 	const tokenCharset = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
 
 	length := 6

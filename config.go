@@ -3,25 +3,25 @@ package main
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
 	AgentID        string
+	Personality    string `mapstructure:"personality"`
 	ServerIP       string `mapstructure:"server_ip"`
 	ServerPort     int    `mapstructure:"server_port"`
 	JwtExpMinutes  int    `mapstructure:"jwt_exp_minutes"`
 	ConnTimeoutSec int    `mapstructure:"conn_timeout_seconds"`
-	Heartbeat      int    `mapstructure:"heartbeat"`
+	Heartbeat      int    `mapstructure:"heartbeat_min"`
 	KeyBits        int    `mapstructure:"key_bits"`
 	KeyPath        string `mapstructure:"key_path"`
 	Private        []byte
@@ -45,7 +45,7 @@ func LoadConfig(configFile string) (*Config, error) {
 	v.SetDefault("key_bits", 2048)
 	v.SetDefault("jwt_exp_minutes", 5)
 	v.SetDefault("conn_timeout_seconds", 10)
-	v.SetDefault("heartbeat", 5)
+	v.SetDefault("heartbeat_min", 1)
 
 	// Read config from file if provided
 	if configFile != "" {
@@ -101,8 +101,8 @@ func LoadConfig(configFile string) (*Config, error) {
 		}
 	}
 
-	// Set agentID to public key fingerprint
-	cfg.AgentID, err = generateFingerprint(cfg.Public)
+	// Set agentID as GUID
+	cfg.AgentID, err = loadGUID()
 	if err != nil {
 		return nil, fmt.Errorf("LoadConfig(): generating public key fingerprint: %w", err)
 	}
@@ -140,29 +140,27 @@ func GenerateRSAKeyPair(bits int) (privateKeyPEM []byte, publicKeyPEM []byte, er
 	return privateKeyPEM, publicKeyPEM, nil
 }
 
-// generateFingerprint() generates a SHA-256 fingerprint from PEM-encoded public key
-func generateFingerprint(pemKey []byte) (string, error) {
-	// Decode PEM block
-	block, _ := pem.Decode(pemKey)
-	if block == nil || block.Type != "PUBLIC KEY" {
-		return "", fmt.Errorf("invalid PEM public key")
+// loadGUID() loads the GUID from a file, creating it if it doesn't exist
+func loadGUID() (string, error) {
+	// TODO: figure out best location for GUID file
+	filePath := "guid"
+
+	// Check if the file exists.
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		// File does not exist, so create it with a new GUID.
+		fmt.Println("guid not found. Creating a new one...")
+		newGUID := uuid.New().String()
+		err = os.WriteFile(filePath, []byte(newGUID), 0644)
+		if err != nil {
+			return "", fmt.Errorf("loadGUID(): failed to create guid file: %v", err)
+		}
 	}
 
-	// Parse public key (to ensure it's valid)
-	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	// Read the content of the file into the AgentID variable.
+	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse public key: %v", err)
+		return "", fmt.Errorf("loadGUID(): failed to read guid: %v", err)
 	}
 
-	// Re-encode to DER for hashing
-	derBytes, err := x509.MarshalPKIXPublicKey(pubKey)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal public key: %v", err)
-	}
-
-	// Compute SHA-256 hash
-	hash := sha256.Sum256(derBytes)
-
-	// Encode as base64 (like OpenSSH SHA256 fingerprint)
-	return base64.StdEncoding.EncodeToString(hash[:]), nil
+	return string(content), nil
 }

@@ -35,7 +35,7 @@ func heartbeat(conn *websocket.Conn, agent string) {
 		if err != nil {
 			log.Println("heartbeat(): ", err)
 		}
-		time.Sleep(time.Duration(cfg.Heartbeat) * time.Second)
+		time.Sleep(time.Duration(cfg.Heartbeat) * time.Minute)
 	}
 }
 

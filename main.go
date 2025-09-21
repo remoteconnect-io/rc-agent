@@ -25,7 +25,11 @@ func main() {
 	// TODO: remove this test code
 	log.Println(cfg)
 
-	authTkn, err := getSignedJWT()
+	otp, err := generateOTP()
+	if err != nil {
+		log.Fatalln("main(): generating OTP: ", err)
+	}
+	authTkn, err := getSignedJWT(otp)
 	if err != nil {
 		log.Fatalln("main(): getting authorization token: ", err)
 	}
