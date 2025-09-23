@@ -36,6 +36,9 @@ func main() {
 
 	wsHeader := http.Header{}
 	wsHeader.Set("Authorization", authTkn)
+	// TODO: Could I check here for agent personality and change WS URL accordingly?
+	// e.g. /bootbox/v1/ws for BootBox agents, /device/v1/ws for device agents
+	// The server would use the same WS handler, but different auth middleware for each personality
 	u := url.URL{
 		Scheme: "ws",
 		Host:   fmt.Sprintf("%s:%d", cfg.ServerIP, cfg.ServerPort),
@@ -55,6 +58,7 @@ func main() {
 		time.Sleep(time.Duration(cfg.ConnTimeoutSec) * time.Second)
 	}
 	defer conn.Close()
+	log.Printf("%s connected...\n", cfg.AgentID)
 
 	// Launch heartbeat routine
 	go heartbeat(conn, cfg.AgentID)
