@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -22,13 +24,28 @@ func init() {
 }
 
 func main() {
-	// TODO: remove this test code
-	log.Println(cfg)
-
-	otp, err := generateOTP()
-	if err != nil {
-		log.Fatalln("main(): generating OTP: ", err)
+	// If device type is 'device' then get OTP & ProvAPI URL from filesystem,
+	//  else generate a new OTP and use default ProvAPI URL from config
+	var otp string
+	var err error
+	if strings.ToLower(cfg.DeviceType) == "device" {
+		content, err := os.ReadFile(cfg.LocalOTPPath)
+		if err != nil {
+			log.Fatalln("main(): reading OTP from file: ", err)
+		}
+		otp = string(content)
+		content, err = os.ReadFile(cfg.LocalURLPath)
+		if err != nil {
+			log.Fatalln("main(): reading URL from file: ", err)
+		}
+		cfg.serverAddr = strings.TrimSpace(string(content))
+	} else {
+		otp, err = generateOTP()
+		if err != nil {
+			log.Fatalln("main(): generating OTP: ", err)
+		}
 	}
+
 	authTkn, err := getSignedJWT(otp)
 	if err != nil {
 		log.Fatalln("main(): getting authorization token: ", err)
@@ -36,12 +53,9 @@ func main() {
 
 	wsHeader := http.Header{}
 	wsHeader.Set("Authorization", authTkn)
-	// TODO: Could I check here for agent personality and change WS URL accordingly?
-	// e.g. /bootbox/v1/ws for BootBox agents, /device/v1/ws for device agents
-	// The server would use the same WS handler, but different auth middleware for each personality
 	u := url.URL{
 		Scheme: "ws",
-		Host:   fmt.Sprintf("%s:%d", cfg.ServerIP, cfg.ServerPort),
+		Host:   fmt.Sprintf("%s:%d", cfg.serverAddr, cfg.ServerPort),
 		Path:   "/agent/v1/ws"}
 
 	// TODO: remove this test code

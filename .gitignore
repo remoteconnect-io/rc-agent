@@ -3,3 +3,5 @@ prov-agent
 config.json
 *.pem
 guid
+otp.txt
+url.txt

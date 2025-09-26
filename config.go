@@ -16,9 +16,11 @@ import (
 
 type Config struct {
 	AgentID        string
-	Personality    string `mapstructure:"personality"`
-	ServerIP       string `mapstructure:"server_ip"`
+	DeviceType     string `mapstructure:"device_type"`
+	serverAddr     string `mapstructure:"server_addr"`
 	ServerPort     int    `mapstructure:"server_port"`
+	LocalURLPath   string `mapstructure:"local_url_path"`
+	LocalOTPPath   string `mapstructure:"local_otp_path"`
 	JwtExpMinutes  int    `mapstructure:"jwt_exp_minutes"`
 	ConnTimeoutSec int    `mapstructure:"conn_timeout_seconds"`
 	Heartbeat      int    `mapstructure:"heartbeat_min"`
@@ -46,6 +48,8 @@ func LoadConfig(configFile string) (*Config, error) {
 	v.SetDefault("jwt_exp_minutes", 5)
 	v.SetDefault("conn_timeout_seconds", 10)
 	v.SetDefault("heartbeat_min", 1)
+	v.SetDefault("local_url_path", "url.txt")
+	v.SetDefault("local_otp_path", "otp.txt")
 
 	// Read config from file if provided
 	if configFile != "" {

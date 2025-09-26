@@ -19,7 +19,7 @@ func getSignedJWT(otp string) (token string, err error) {
 	token, err = jwt.NewWithClaims(jwt.SigningMethodRS256,
 		jwt.MapClaims{
 			"sub": cfg.AgentID,
-			"per": cfg.Personality,
+			"per": cfg.DeviceType,
 			"otp": otp,
 			"exp": time.Now().Add(time.Second * time.Duration(cfg.JwtExpMinutes)).Unix(),
 			"iss": base64.StdEncoding.EncodeToString(cfg.Public),
