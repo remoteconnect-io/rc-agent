@@ -1,3 +1,14 @@
+/*
+ * Anasazi Precision Engineering LLC CONFIDENTIAL
+ *
+ * Unpublished Copyright (c) 2025 Anasazi Precision Engineering LLC. All Rights Reserved.
+ *
+ * Proprietary to Anasazi Precision Engineering LLC and may be covered by patents, patents
+ * in process, and trade secret or copyright law. Dissemination of this information or
+ * reproduction of this material is strictly forbidden unless prior written
+ * permission is obtained from Anasazi Precision Engineering LLC.
+ */
+
 package main
 
 import (
@@ -19,7 +30,7 @@ func getSignedJWT(otp string) (token string, err error) {
 	token, err = jwt.NewWithClaims(jwt.SigningMethodRS256,
 		jwt.MapClaims{
 			"sub": cfg.AgentID,
-			"per": cfg.DeviceType,
+			"dev": cfg.DeviceType,
 			"otp": otp,
 			"exp": time.Now().Add(time.Second * time.Duration(cfg.JwtExpMinutes)).Unix(),
 			"iss": base64.StdEncoding.EncodeToString(cfg.Public),
