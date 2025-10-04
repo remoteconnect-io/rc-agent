@@ -13,7 +13,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -84,14 +83,12 @@ func dispatcher(conn *websocket.Conn, rpcBuffer <-chan rpc) {
 			log.Println("dispatcher(): rotate_keys received")
 			msg := rpc{1, r.JobID, time.Now().Unix(), "FAILED", nil}
 			rpcRes(conn, msg)
-		case "create_tunnel":
-			var sshPort sshTunnel
-			err := json.Unmarshal(r.Payload, &sshPort)
-			if err != nil {
-				log.Println("dispatcher(): create_tunnel unmarshalling:", err)
-			}
-			fmt.Printf("Create tunnel, remote_port: %d, local_port: %d\n", sshPort.Remote, sshPort.Local)
-			//go createTunnel(sshPort.Local, sshPort.Remote)
+		case "provision_recipe":
+			log.Println("dispatcher(): provision_recipe received")
+			msg := rpc{1, r.JobID, time.Now().Unix(), "provision_ack", nil}
+			rpcRes(conn, msg)
+
+			// TODO: need to validate & do something with recipe
 		default:
 			log.Println("dispatcher(): undefined RPC method: ", r.Method)
 		}
